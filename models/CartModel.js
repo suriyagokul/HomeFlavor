@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const itemSchema = new mongoose.Schema({
+const cartSchema = new mongoose.Schema({
   ItemName: {
     type: "string",
     required: true,
@@ -8,23 +8,17 @@ const itemSchema = new mongoose.Schema({
   ItemImage: {
     type: "string",
   },
-  ItemDescription: {
-    type: "string",
-  },
   ItemPrice: {
     type: "string",
     required: true,
   },
-  registeredusername: {
-    type: "string",
-    required: true,
-  },
-  registereduserid: {
+  TotalPrice: {
     type: "string",
   },
-  usermobileno: {
+
+  useritem_id: {
     type: "string",
   },
 });
 
-module.exports = mongoose.model("Items", itemSchema);
+module.exports = mongoose.model("Cart", cartSchema);

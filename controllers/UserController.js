@@ -1,11 +1,13 @@
 const UserModel = require("../models/UserModel");
 const ItemModel = require("../models/ItemModel");
+const CartModel = require("../models/CartModel");
 const jwt = require("jsonwebtoken");
 
 module.exports.registerUser = async (req, res) => {
   try {
-    let { Username, Email, Password, ConfirmPassword } = req.body;
-    const exist = await UserModel.findOne({ Email });
+    let { Username, Email, MobileNo, Password, ConfirmPassword, UserImage } =
+      req.body;
+    const exist = await UserModel.findOne({ MobileNo });
 
     if (exist) {
       return res.status(400).send("User already Registered");
@@ -16,8 +18,10 @@ module.exports.registerUser = async (req, res) => {
     let newUser = new UserModel({
       Username,
       Email,
+      MobileNo,
       Password,
       ConfirmPassword,
+      UserImage,
     });
     await newUser.save();
     return res.status(200).send("User Registered Successfully");
@@ -28,9 +32,9 @@ module.exports.registerUser = async (req, res) => {
 
 module.exports.login = async (req, res) => {
   try {
-    const { Email, Password } = req.body;
+    const { MobileNo, Password } = req.body;
 
-    const exist = await UserModel.findOne({ Email });
+    const exist = await UserModel.findOne({ MobileNo });
 
     if (!exist) {
       return res.status(401).send("User does not exist. Please Register");
@@ -71,6 +75,7 @@ module.exports.registeritem = async (req, res, next) => {
     let newItem = new ItemModel({
       registeredusername: exist.Username,
       registereduserid: exist.id,
+      usermobileno: exist.MobileNo,
       ItemName,
       ItemImage,
       ItemDescription,
@@ -89,5 +94,69 @@ module.exports.profile = async (req, res, next) => {
     return res.json(currentUser);
   } catch (err) {
     return res.status(500).send("Server error");
+  }
+};
+
+function decodeBase64Image(dataString) {
+  const matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+  if (!matches) {
+    throw new Error("Invalid data string");
+  }
+
+  const type = matches[1];
+  const buffer = Buffer.from(matches[2], "base64");
+
+  return {
+    type,
+    buffer,
+  };
+}
+
+module.exports.updateUser = async function (req, res, next) {
+  try {
+    const id = req.user.id;
+    const { UserImage } = req.body;
+    console.log(req.body);
+    const exist = await UserModel.findByIdAndUpdate(
+      id,
+      { UserImage },
+      { new: true }
+    );
+    if (exist) {
+      return res.status(200).send({
+        success: true,
+        message: "User updated successfully.",
+        data: exist,
+      });
+    }
+    return res.status(404).send({ success: false, message: "User not found." });
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+};
+
+module.exports.saveItemsToCart = async function (req, res, next) {
+  try {
+    const { ItemName, ItemPrice, ItemImage, TotalPrice } = req.body;
+    const cart = new CartModel({
+      ItemName,
+      ItemPrice,
+      ItemImage,
+      TotalPrice,
+      useritem_id: "",
+    });
+    await cart.save();
+    return res.status(200).send("Cart saved successfully");
+  } catch (err) {
+    return res.status(500).send("Server error: " + err);
+  }
+};
+
+module.exports.cartitems = async function (req, res, next) {
+  try {
+    let allitems = await CartModel.find();
+    return res.json(allitems);
+  } catch (err) {
+    return res.status(500).send("Cart error: " + err);
   }
 };

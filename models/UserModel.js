@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema({
     type: "string",
     required: true,
   },
+  MobileNo: {
+    type: "string",
+    required: true,
+  },
   Password: {
     type: "string",
     required: true,
@@ -16,6 +20,9 @@ const userSchema = new mongoose.Schema({
   ConfirmPassword: {
     type: "string",
     required: true,
+  },
+  UserImage: {
+    type: "string",
   },
 });
 
